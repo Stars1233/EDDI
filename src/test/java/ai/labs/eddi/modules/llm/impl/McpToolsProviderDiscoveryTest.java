@@ -4,10 +4,10 @@
  */
 package ai.labs.eddi.modules.llm.impl;
 
-import ai.labs.eddi.configs.agents.IRestAgentStore;
+import ai.labs.eddi.configs.agents.IAgentStore;
 import ai.labs.eddi.configs.agents.model.AgentConfiguration;
 import ai.labs.eddi.configs.mcpcalls.model.McpCallsConfiguration;
-import ai.labs.eddi.configs.workflows.IRestWorkflowStore;
+import ai.labs.eddi.configs.workflows.IWorkflowStore;
 import ai.labs.eddi.configs.workflows.model.WorkflowConfiguration;
 import ai.labs.eddi.configs.workflows.model.WorkflowConfiguration.WorkflowStep;
 import ai.labs.eddi.engine.memory.IConversationMemory;
@@ -66,8 +66,8 @@ class McpToolsProviderDiscoveryTest {
     private static final AtomicInteger AGENT_SEQ = new AtomicInteger();
 
     private IConversationMemory memory;
-    private IRestAgentStore agentStore;
-    private IRestWorkflowStore workflowStore;
+    private IAgentStore agentStore;
+    private IWorkflowStore workflowStore;
     private IResourceClientLibrary resourceClientLibrary;
     private McpToolProviderManager manager;
     private String agentId;
@@ -75,8 +75,8 @@ class McpToolsProviderDiscoveryTest {
     @BeforeEach
     void setUp() {
         memory = mock(IConversationMemory.class);
-        agentStore = mock(IRestAgentStore.class);
-        workflowStore = mock(IRestWorkflowStore.class);
+        agentStore = mock(IAgentStore.class);
+        workflowStore = mock(IWorkflowStore.class);
         resourceClientLibrary = mock(IResourceClientLibrary.class);
         manager = mock(McpToolProviderManager.class);
         agentId = "mcp-agent-" + AGENT_SEQ.incrementAndGet();
@@ -93,11 +93,11 @@ class McpToolsProviderDiscoveryTest {
         var agentConfig = new AgentConfiguration();
         agentConfig.setWorkflows(List.of(
                 URI.create("eddi://ai.labs.workflow/workflowstore/workflows/wf-" + agentId + "?version=1")));
-        when(agentStore.readAgent(agentId, 1)).thenReturn(agentConfig);
+        when(agentStore.read(agentId, 1)).thenReturn(agentConfig);
 
         var wfConfig = new WorkflowConfiguration();
         wfConfig.setWorkflowSteps(steps);
-        when(workflowStore.readWorkflow("wf-" + agentId, 1)).thenReturn(wfConfig);
+        when(workflowStore.read("wf-" + agentId, 1)).thenReturn(wfConfig);
     }
 
     private static WorkflowStep mcpStep(String configId) {
@@ -370,7 +370,7 @@ class McpToolsProviderDiscoveryTest {
     void storeFailureIsSwallowed() throws Exception {
         when(memory.getAgentId()).thenReturn(agentId);
         when(memory.getAgentVersion()).thenReturn(1);
-        when(agentStore.readAgent(agentId, 1)).thenThrow(new RuntimeException("store down"));
+        when(agentStore.read(agentId, 1)).thenThrow(new RuntimeException("store down"));
 
         var result = provider().discover(memory);
 

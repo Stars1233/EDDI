@@ -65,7 +65,7 @@ class McpToolsProviderTest {
     }
 
     @Test
-    void contribute_nullFlag_defaultsToEnabled() {
+    void contribute_nullFlag_defaultsToEnabled() throws Exception {
         var memory = mock(IConversationMemory.class);
         when(memory.getAgentId()).thenReturn("agent-1");
         when(memory.getAgentVersion()).thenReturn(7);
@@ -73,15 +73,15 @@ class McpToolsProviderTest {
         task.setEnableMcpCallTools(null);
         var ctx = new ToolAssemblyContext(memory, task, null, null, "user-1", "agent-1", null);
 
-        var restAgentStore = mock(IRestAgentStore.class);
-        var contribution = new McpToolsProvider(restAgentStore, mock(IRestWorkflowStore.class),
+        var agentStore = mock(IAgentStore.class);
+        var contribution = new McpToolsProvider(agentStore, mock(IWorkflowStore.class),
                 mock(IResourceClientLibrary.class), mock(McpToolProviderManager.class)).contribute(ctx);
 
         // The point of the test is that a null flag does NOT short-circuit: discovery
         // has to be attempted. assertNotNull alone passed either way, because the
         // disabled path also returns a non-null empty contribution.
         assertNotNull(contribution);
-        verify(restAgentStore).readAgent("agent-1", 7);
+        verify(agentStore).read("agent-1", 7);
     }
 
     @Test
